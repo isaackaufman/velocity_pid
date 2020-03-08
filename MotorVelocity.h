@@ -1,15 +1,15 @@
 #pragma once
 #include "Motor.h"
 
-template<int pwm_pin, int dir_pin, int enca_pin, int encb_pin>
-class MotorVelocity : public Motor<pwm_pin, dir_pin, enca_pin, encb_pin> {
+template<int pwm_pin, int dir_pin_1, int dir_pin_2, int enca_pin, int encb_pin>
+class MotorVelocity : public Motor<pwm_pin, dir_pin_1, dir_pin_2, enca_pin, encb_pin> {
     public:
-        MotorVelocity(float p, float i, float d) : Motor<pwm_pin, dir_pin, enca_pin, encb_pin>(p,  i,  d) {};
+        MotorVelocity(float p, float i, float d) : Motor<pwm_pin, dir_pin_1, dir_pin_2, enca_pin, encb_pin>(p,  i,  d) {};
         int update(void);
 };
 
-template<int pwm_pin, int dir_pin, int enca_pin, int encb_pin>
-int MotorVelocity<pwm_pin, dir_pin, enca_pin, encb_pin>::update() {
+template<int pwm_pin, int dir_pin_1, int dir_pin_2, int enca_pin, int encb_pin>
+int MotorVelocity<pwm_pin, dir_pin_1, dir_pin_2, enca_pin, encb_pin>::update() {
 
     // velocity control
     noInterrupts();
