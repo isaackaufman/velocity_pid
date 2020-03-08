@@ -3,17 +3,17 @@
 #define REV_WHEEL    (3591.84) // https://www.pololu.com/product/4866
 
 // Motor Interfaces
-#define PWM_LEFT     (0)
-#define DIR1_LEFT    (0)
-#define DIR2_LEFT    (0)
-#define ENCA_LEFT    (0)
-#define ENCB_LEFT    (0)
+#define PWM_LEFT     (3)
+#define DIR1_LEFT    (6) //IN3
+#define DIR2_LEFT    (7) //IN4
+#define ENCA_LEFT    (16)
+#define ENCB_LEFT    (17)
 
-#define PWM_RIGHT    (0)
-#define DIR1_RIGHT   (0)
-#define DIR2_RIGHT   (0)
-#define ENCA_RIGHT   (0)
-#define ENCB_RIGHT   (0)
+#define PWM_RIGHT    (2)
+#define DIR1_RIGHT   (4) //IN1
+#define DIR2_RIGHT   (5) //IN2
+#define ENCA_RIGHT   (8)
+#define ENCB_RIGHT   (9)
 
 // PID Controllers
 #define KP_LEFT      (6.0f)
