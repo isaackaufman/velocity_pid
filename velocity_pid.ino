@@ -1,14 +1,6 @@
 // motor pid libraries
 #include "Arduino.h"
 #include "MotorVelocity.h"
-#include "MotorPosition.h"
-// gyro
-// #include "IMU.h"
-// 7 seg
-//#include <Adafruit_GFX.h>
-//#include <Adafruit_LEDBackpack.h>
-// servo
-#include <Servo.h>
 
 int SPEED = 3.5;
 
@@ -28,14 +20,6 @@ int SPEED = 3.5;
 // right rear
 #define PWM4    (11)
 #define DIR4    (52)
-// flag turner
-#define PWM5    (12)
-#define DIR5    (41)
-// flag turner servo pwm
-#define FLAG_SERVO  (7)
-// treasure box
-#define PWM6    (13)
-#define DIR6    (39)
 
 /* encoders */
 // left front
@@ -50,12 +34,6 @@ int SPEED = 3.5;
 // right rear
 #define ENC4_A  (36)
 #define ENC4_B  (38)
-// flag turner
-#define ENC5_A  (45)
-#define ENC5_B  (43)
-// treausre box
-// #define ENC6_A  ()
-// #define ENC6_B  ()
 
 /* PIDs */
 // left front
@@ -94,50 +72,6 @@ MotorVelocity<PWM2, DIR2, ENC2_A, ENC2_B> right_front(P2, I2, D2);
 MotorVelocity<PWM3, DIR3, ENC3_A, ENC3_B> left_rear(P3, I3, D3);
 MotorVelocity<PWM4, DIR4, ENC4_A, ENC4_B> right_rear(P4, I4, D4);
 
-//MotorPosition flag(PWM5, DIR5, ENC5_A, ENC5_B, P5, P5, P5);
-Servo flagServo;
-// MotorPosition treasure(PWM6, DIR6, ENC6_A, ENC6_B, P6, P6, P6);
-
-// Define global IMU Gyro Sensor
-//imuGyro gyro(0, 0, 0);
-
-
-int flag_enc_val;
-volatile int32_t flag_encoder_count;
-
-void flag_encoder_isr() {
-    flag_enc_val = (flag_enc_val << 2) | (digitalRead(ENC5_A) << 1) | digitalRead(ENC5_B);
-
-    flag_encoder_count += encoder_table[flag_enc_val & 0b1111];
-//    Serial.println(encoder_count);
-}
-
-// 7 seg
-#define SEVEN_SEG (28)
-//Adafruit_7segment matrix = Adafruit_7segment();
-//void displayNum(int num) {
-//  matrix.writeDigitRaw(2, 0x10);
-//  if (num == 1)
-//    matrix.writeDigitRaw(4, 0x30); //dec 1
-//  else if (num == 2)
-//    matrix.writeDigitRaw(4, 0x5B); //dec 2
-//  else if (num == 3)
-//    matrix.writeDigitRaw(4, 0x79); //dec 3
-//  else if (num == 4)
-//    matrix.writeDigitRaw(4, 0x74); //dec 4
-//  else if (num == 5)
-//    matrix.writeDigitRaw(4, 0x6D); //dec 5
-//  else if (num == 6)
-//    matrix.writeDigitRaw(4, 0x6F); //dec 6
-//  else if (num == 7)
-//    matrix.writeDigitRaw(4, 0x38); //Dec 7
-//  else if (num == 8)
-//    matrix.writeDigitRaw(4, 0xFF); //Dec 8
-//  else if (num == 9)
-//    matrix.writeDigitRaw(4, 0x7D); //Dec 9
-//  matrix.writeDisplay();
-//  delay(500);
-//}
 
 // serial stuff with Pi
 String inputString = "";         // a String to hold incoming data
@@ -150,47 +84,20 @@ void setup() {
     Serial.begin(115200);
     inputString.reserve(200);
 
-    // seven segment output
-    pinMode(SEVEN_SEG, OUTPUT);
-    digitalWrite(SEVEN_SEG, HIGH);
-//    matrix.begin(0x70);
-
-    // gyro.init(30);
-    // gyro.reset();
-    // setPointHeading = gyro1.getZ();
-
     // set directions
     left_rear.reverseMotor();
     left_front.reverseMotor();
     right_rear.reverseMotor();
-//    flag.reverseMotor();
-//    right_front.reverseMotor();
+    right_front.reverseMotor();
 
     // set targets
-//     left_front.setTarget(SPEED);
-//     right_front.setTarget(SPEED);
-//     left_rear.setTarget(SPEED);
-//     right_rear.setTarget(SPEED);
-
-//     flag.setTarget(5*REV_FLAG);
-
-    // start servo
-    flagServo.attach(FLAG_SERVO);
-    flagServo.write(0);
-
-    // gyro.setTarget(0);
-    
-//    attachInterrupt(digitalPinToInterrupt(ENC5_A), flag_encoder_isr, CHANGE);
-//    attachInterrupt(digitalPinToInterrupt(ENC5_B), flag_encoder_isr, CHANGE);
-    attachInterrupt(ENC5_A, flag_encoder_isr, CHANGE);
-    attachInterrupt(ENC5_B, flag_encoder_isr, CHANGE);
-
-//    extendFlag();
-//    grabChest();
+    left_front.setTarget(SPEED);
+    right_front.setTarget(SPEED);
+    left_rear.setTarget(SPEED);
+    right_rear.setTarget(SPEED);
 }
 
 void loop() {
-
     if (inputString == "FORWARD") {
         driveForward();
     } else if (inputString == "BACKWARD") {
@@ -223,30 +130,17 @@ void loop() {
         stringComplete = false;
     }
 
-
     // determine if it's time to run the PID calculations again
     if (micros() - last_run > PID_PERIOD) {
-
-        // float gyro_command = gyro.update();
-        // Serial.print("gryo: "); Serial.println(gyro_command);
-        // left_front.updateTarget(5 + gyro_command);
-        // right_front.updateTarget(5 + gyro_command);
-        // left_rear.updateTarget(5 + gyro_command);
-        // right_rear.updateTarget(5 + gyro_command);
-
         int left_front_command = left_front.update();
         int right_front_command = right_front.update();
         int left_rear_command = left_rear.update();
         int right_rear_command = right_rear.update();
-//        int flag_command = flag.update();
-
-        // Serial.print("flag command: "); Serial.println(flag_command);
 
         left_front.setSpeed(left_front_command);
         right_front.setSpeed(right_front_command);
         left_rear.setSpeed(left_rear_command);
         right_rear.setSpeed(right_rear_command);
-//        flag.setSpeed(flag_command);
 
         last_run = micros();
     }
@@ -254,10 +148,7 @@ void loop() {
 
 void serialEvent() {
   while (Serial.available()) {
-    // get the new byte:
     char inChar = (char)Serial.read();
-    Serial.print(inChar);
-    // add it to the inputString:
     inputString += inChar;
     // if the incoming character is a newline, set a flag so the main loop can
     // do something about it:
@@ -306,44 +197,4 @@ void rotateCCW() {
 }
 void stopRobot() {
     setTargets(0, 0, 0, 0);
-}
-void extendFlag() {
-
-    setTargets(0, 0, 0, 0);
-    
-    flagServo.write(135);   // extend
-
-    delay(400);             // wait for extension
-
-    digitalWrite(DIR5, LOW);
-    analogWrite(PWM5, 25);
-
-    while (abs(flag_encoder_count) < 2250) {}
-    
-    analogWrite(PWM5, 0);
-
-    delay(250);
-    flagServo.write(0);
-
-//    flag.setTarget(5*REV_FLAG); // spin 5 times
-
-    delay(5000);    // wait for spin
-}
-void grabChest() {
-
-    setTargets(0, 0, 0, 0);
-
-    digitalWrite(DIR6, HIGH);  // direction command
-    analogWrite(PWM6, 255);
-
-    delay(1000);
-
-    digitalWrite(DIR6, LOW);  // direction command
-    analogWrite(PWM6, 255); // write full speed to pick up
-
-    delay(1000);    // wait a second to capture
-
-    analogWrite(PWM6, 0);
-
-//    SPEED = 2.8;    // increase robot speed
 }
